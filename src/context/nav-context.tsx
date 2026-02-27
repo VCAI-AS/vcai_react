@@ -81,7 +81,6 @@ export function NavProvider({ children }: { children: React.ReactNode }) {
     const fetchData = async () => {
       try {
         const res: any = await ajax.get(api.userPermission)
-        // 兼容处理：防止 res 或 menuTreeVOs 为 null
         const treeData = res?.menuTreeVOs || res || []
 
         setMenuTree(treeData)
