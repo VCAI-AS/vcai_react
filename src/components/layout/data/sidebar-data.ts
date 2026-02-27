@@ -18,34 +18,35 @@ import {
   Users,
   MessagesSquare,
   ShieldCheck,
-  AudioWaveform,
-  Command,
-  GalleryVerticalEnd,
+  Brain,
+  ShieldUser,
+  ShoppingBag,
+  Code
 } from 'lucide-react'
 import { ClerkLogo } from '@/assets/clerk-logo'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
   user: {
-    name: 'satnaing',
-    email: 'satnaingdev@gmail.com',
+    name: 'VCAI',
+    email: 'VCAI@gmail.com',
     avatar: '/avatars/shadcn.jpg',
   },
   teams: [
     {
-      name: 'Shadcn Admin',
-      logo: Command,
-      plan: 'Vite + ShadcnUI',
+      name: 'VC.AI',
+      logo: Brain,
+      plan: '策略部',
     },
     {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
+      name: 'VC.AI',
+      logo: ShieldUser,
+      plan: '管理部',
     },
     {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
+      name: 'VC.AI',
+      logo: Code,
+      plan: '技术部',
     },
   ],
   navGroups: [
@@ -72,6 +73,11 @@ export const sidebarData: SidebarData = {
           url: '/chats',
           badge: '3',
           icon: MessagesSquare,
+        },
+        {
+          title: '商品管理',
+          url: '/products',
+          icon: ShoppingBag,
         },
         {
           title: 'Users',

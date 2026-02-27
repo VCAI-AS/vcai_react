@@ -84,7 +84,7 @@ export function Apps() {
   return (
     <>
       {/* ===== Top Heading ===== */}
-      <Header>
+      <Header fixed={true}>
         <Search />
         <div className='ms-auto flex items-center gap-4'>
           <ThemeSwitch />

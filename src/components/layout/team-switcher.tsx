@@ -1,13 +1,13 @@
 import * as React from 'react'
-import { ChevronsUpDown, Plus } from 'lucide-react'
+import { ChevronsUpDown } from 'lucide-react'
+import { useNav } from '@/context/nav-context'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import {
   SidebarMenu,
@@ -16,17 +16,16 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 
-type TeamSwitcherProps = {
-  teams: {
-    name: string
-    logo: React.ElementType
-    plan: string
-  }[]
-}
+// 引入 Context
 
-export function TeamSwitcher({ teams }: TeamSwitcherProps) {
+export function TeamSwitcher() {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  const { teams, activeTeamId, setActiveTeamId } = useNav()
+
+  // 找到当前激活的 Team 对象
+  const activeTeam = teams.find((t) => t.id === activeTeamId) || teams[0]
+
+  if (!activeTeam) return null // 数据加载中或无数据
 
   return (
     <SidebarMenu>
@@ -40,44 +39,36 @@ export function TeamSwitcher({ teams }: TeamSwitcherProps) {
               <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground'>
                 <activeTeam.logo className='size-4' />
               </div>
-              <div className='grid flex-1 text-start text-sm leading-tight'>
+              <div className='grid flex-1 text-left text-sm leading-tight'>
                 <span className='truncate font-semibold'>
-                  {activeTeam.name}
+                  {activeTeam.agent}
                 </span>
-                <span className='truncate text-xs'>{activeTeam.plan}</span>
+                <span className='truncate text-xs'>{activeTeam.name}</span>
               </div>
-              <ChevronsUpDown className='ms-auto' />
+              <ChevronsUpDown className='ml-auto' />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
+            className='w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg'
             align='start'
             side={isMobile ? 'bottom' : 'right'}
             sideOffset={4}
           >
             <DropdownMenuLabel className='text-xs text-muted-foreground'>
-              Teams
+              切换部门
             </DropdownMenuLabel>
             {teams.map((team, index) => (
               <DropdownMenuItem
-                key={team.name}
-                onClick={() => setActiveTeam(team)}
-                className='gap-2 p-2'
+                key={team.id}
+                onClick={() => setActiveTeamId(team.id)}
+                className='cursor-pointer gap-2 p-2'
               >
-                <div className='flex size-6 items-center justify-center rounded-sm border'>
+                <div className='flex size-6 items-center justify-center rounded-sm border border-border'>
                   <team.logo className='size-4 shrink-0' />
                 </div>
                 {team.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className='gap-2 p-2'>
-              <div className='flex size-6 items-center justify-center rounded-md border bg-background'>
-                <Plus className='size-4' />
-              </div>
-              <div className='font-medium text-muted-foreground'>Add team</div>
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

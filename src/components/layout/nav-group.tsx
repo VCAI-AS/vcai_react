@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import { ChevronRight } from 'lucide-react'
 import {
@@ -36,9 +36,10 @@ import {
 export function NavGroup({ title, items }: NavGroupProps) {
   const { state, isMobile } = useSidebar()
   const href = useLocation({ select: (location) => location.href })
+
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{title}</SidebarGroupLabel>
+      {title && <SidebarGroupLabel>{title}</SidebarGroupLabel>}
       <SidebarMenu>
         {items.map((item) => {
           const key = `${item.title}-${item.url}`
@@ -62,6 +63,7 @@ function NavBadge({ children }: { children: ReactNode }) {
   return <Badge className='rounded-full px-1 py-0 text-xs'>{children}</Badge>
 }
 
+// 1. 第一层级的链接 (Leaf Node)
 function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
   const { setOpenMobile } = useSidebar()
   return (
@@ -81,6 +83,7 @@ function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
   )
 }
 
+// 2. 可折叠菜单 (Recursive Collapsible)
 function SidebarMenuCollapsible({
   item,
   href,
@@ -89,35 +92,43 @@ function SidebarMenuCollapsible({
   href: string
 }) {
   const { setOpenMobile } = useSidebar()
+  const isOpen = checkIsActive(href, item, true)
+
   return (
-    <Collapsible
-      asChild
-      defaultOpen={checkIsActive(href, item, true)}
-      className='group/collapsible'
-    >
+    <Collapsible asChild defaultOpen={isOpen} className='group/collapsible'>
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton tooltip={item.title}>
+          <SidebarMenuButton tooltip={item.title} isActive={isOpen}>
             {item.icon && <item.icon />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
             <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180' />
           </SidebarMenuButton>
         </CollapsibleTrigger>
-        <CollapsibleContent className='CollapsibleContent'>
+        <CollapsibleContent>
           <SidebarMenuSub>
             {item.items.map((subItem) => (
-              <SidebarMenuSubItem key={subItem.title}>
-                <SidebarMenuSubButton
-                  asChild
-                  isActive={checkIsActive(href, subItem)}
-                >
-                  <Link to={subItem.url} onClick={() => setOpenMobile(false)}>
-                    {subItem.icon && <subItem.icon />}
-                    <span>{subItem.title}</span>
-                    {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
-                  </Link>
-                </SidebarMenuSubButton>
+              <SidebarMenuSubItem key={`${subItem.title}-${subItem.url}`}>
+                {/* 核心修改：判断子项是否还有子项，实现递归 */}
+                {subItem.items && subItem.items.length > 0 ? (
+                  // 如果还有子菜单，递归调用 SidebarMenuCollapsible
+                  <SidebarMenuCollapsible
+                    item={subItem as NavCollapsible}
+                    href={href}
+                  />
+                ) : (
+                  // 如果是叶子节点，渲染 SubButton
+                  <SidebarMenuSubButton
+                    asChild
+                    isActive={checkIsActive(href, subItem)}
+                  >
+                    <Link to={subItem.url} onClick={() => setOpenMobile(false)}>
+                      {subItem.icon && <subItem.icon />}
+                      <span>{subItem.title}</span>
+                      {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
+                    </Link>
+                  </SidebarMenuSubButton>
+                )}
               </SidebarMenuSubItem>
             ))}
           </SidebarMenuSub>
@@ -127,6 +138,7 @@ function SidebarMenuCollapsible({
   )
 }
 
+// 3. 折叠模式下的下拉菜单 (Collapsed Dropdown)
 function SidebarMenuCollapsedDropdown({
   item,
   href,
@@ -153,6 +165,7 @@ function SidebarMenuCollapsedDropdown({
             {item.title} {item.badge ? `(${item.badge})` : ''}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {/* 这里只处理了一层下拉，如果侧边栏折叠后需要无限层级下拉比较复杂，通常只显示两级或使用 SubMenu */}
           {item.items.map((sub) => (
             <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
               <Link
@@ -173,11 +186,13 @@ function SidebarMenuCollapsedDropdown({
   )
 }
 
+// 辅助函数：递归检查激活状态
 function checkIsActive(href: string, item: NavItem, mainNav = false) {
   return (
-    href === item.url || // /endpint?search=param
-    href.split('?')[0] === item.url || // endpoint
-    !!item?.items?.filter((i) => i.url === href).length || // if child nav is active
+    href === item.url ||
+    href.split('?')[0] === item.url ||
+    // 递归检查子项
+    !!item?.items?.filter((i) => checkIsActive(href, i)).length ||
     (mainNav &&
       href.split('/')[1] !== '' &&
       href.split('/')[1] === item?.url?.split('/')[1])

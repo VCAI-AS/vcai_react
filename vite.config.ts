@@ -19,4 +19,16 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    host: '192.168.1.226',
+    port: 8888,
+    proxy: {
+      '/ssl': {
+        target: 'http://192.168.1.133',
+        changeOrigin: true,
+        secure: false,
+        // rewrite: (path) => path.replace(/^\/ssl/, '') 
+      }
+    }
+  }
 })

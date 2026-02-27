@@ -1,9 +1,21 @@
 import { type LinkProps } from '@tanstack/react-router'
 
 type User = {
-  name: string
-  email: string
-  avatar: string
+  userId: number
+  deptId: number
+  deptName: string
+  userName: string
+  fullName: string
+  phoneNumber: string
+  sex: number
+  admin: number
+  adminName: string
+  accessToken: string
+  approver: boolean
+  loginTime: string
+  lastAccessTime: number
+  avatar?: string
+  email?: string
 }
 
 type Team = {
@@ -41,4 +53,5 @@ type SidebarData = {
   navGroups: NavGroup[]
 }
 
-export type { SidebarData, NavGroup, NavItem, NavCollapsible, NavLink }
+
+export type { User, SidebarData, NavGroup, NavItem, NavCollapsible, NavLink }

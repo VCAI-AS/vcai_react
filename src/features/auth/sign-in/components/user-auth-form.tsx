@@ -5,8 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
-import { IconFacebook, IconGithub } from '@/assets/brand-icons'
 import { useAuthStore } from '@/stores/auth-store'
+import ajax from '@/lib/request/ajax'
+import api from '@/lib/request/api'
 import { sleep, cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,13 +22,14 @@ import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 
 const formSchema = z.object({
-  email: z.email({
-    error: (iss) => (iss.input === '' ? 'Please enter your email' : undefined),
+  userName: z.string({
+    error: (iss) =>
+      iss.input === '' ? 'Please enter your username' : undefined,
   }),
-  password: z
+  passWord: z
     .string()
     .min(1, 'Please enter your password')
-    .min(7, 'Password must be at least 7 characters long'),
+    .min(5, 'Password must be at least 5 characters long'),
 })
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
@@ -46,39 +48,37 @@ export function UserAuthForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      userName: '',
+      passWord: '',
     },
   })
-
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
-
-    toast.promise(sleep(2000), {
-      loading: 'Signing in...',
-      success: () => {
-        setIsLoading(false)
-
-        // Mock successful authentication with expiry computed at success time
-        const mockUser = {
-          accountNo: 'ACC001',
-          email: data.email,
-          role: ['user'],
-          exp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours from now
-        }
-
-        // Set user and access token
-        auth.setUser(mockUser)
-        auth.setAccessToken('mock-access-token')
-
-        // Redirect to the stored location or default to dashboard
-        const targetPath = redirectTo || '/'
-        navigate({ to: targetPath, replace: true })
-
-        return `Welcome back, ${data.email}!`
-      },
-      error: 'Error',
-    })
+    try {
+      const res = await ajax.post(api.login, data)
+      toast.promise(sleep(2000), {
+        loading: 'Signing in...',
+        success: () => {
+          auth.setUser(res)
+          auth.setAccessToken(res.accessToken)
+          const targetPath = redirectTo || '/'
+          navigate({ to: targetPath, replace: true })
+          setIsLoading(false)
+          return `Welcome back, ${res.fullName}!`
+        },
+        error: 'Unexpected error',
+      })
+    } catch (error: any) {
+      setIsLoading(false)
+      let errorMessage = 'Login failed, please try again'
+      if (error) {
+        errorMessage = error.message
+      }
+      toast.error(errorMessage, {
+        position: 'top-center',
+        duration: 3000,
+      })
+    }
   }
 
   return (
@@ -90,12 +90,12 @@ export function UserAuthForm({
       >
         <FormField
           control={form.control}
-          name='email'
+          name='userName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>User Name</FormLabel>
               <FormControl>
-                <Input placeholder='name@example.com' {...field} />
+                <Input placeholder='' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -103,7 +103,7 @@ export function UserAuthForm({
         />
         <FormField
           control={form.control}
-          name='password'
+          name='passWord'
           render={({ field }) => (
             <FormItem className='relative'>
               <FormLabel>Password</FormLabel>
@@ -125,7 +125,7 @@ export function UserAuthForm({
           Sign in
         </Button>
 
-        <div className='relative my-2'>
+        {/* <div className='relative my-2'>
           <div className='absolute inset-0 flex items-center'>
             <span className='w-full border-t' />
           </div>
@@ -143,7 +143,7 @@ export function UserAuthForm({
           <Button variant='outline' type='button' disabled={isLoading}>
             <IconFacebook className='h-4 w-4' /> Facebook
           </Button>
-        </div>
+        </div> */}
       </form>
     </Form>
   )

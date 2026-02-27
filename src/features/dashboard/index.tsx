@@ -24,7 +24,7 @@ export function Dashboard() {
       {/* ===== Top Heading ===== */}
       <Header>
         <TopNav links={topNav} />
-        <div className='ms-auto flex items-center space-x-4'>
+        <div className='ms-auto flex items-center space-x-4 sm:ms-0 md:ms-auto'>
           <Search />
           <ThemeSwitch />
           <ConfigDrawer />
@@ -194,27 +194,27 @@ export function Dashboard() {
 
 const topNav = [
   {
-    title: 'Overview',
+    title: '飞轮挖矿',
     href: 'dashboard/overview',
-    isActive: true,
+    isActive: false,
     disabled: false,
   },
   {
-    title: 'Customers',
+    title: '知识库',
     href: 'dashboard/customers',
     isActive: false,
-    disabled: true,
+    disabled: false,
   },
-  {
-    title: 'Products',
-    href: 'dashboard/products',
-    isActive: false,
-    disabled: true,
-  },
-  {
-    title: 'Settings',
-    href: 'dashboard/settings',
-    isActive: false,
-    disabled: true,
-  },
+  // {
+  //   title: 'Products',
+  //   href: 'dashboard/products',
+  //   isActive: false,
+  //   disabled: true,
+  // },
+  // {
+  //   title: 'Settings',
+  //   href: 'dashboard/settings',
+  //   isActive: false,
+  //   disabled: true,
+  // },
 ]

@@ -10,8 +10,11 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { handleServerError } from '@/lib/handle-server-error'
+import { Toaster } from '@/components/ui/sonner'
 import { DirectionProvider } from './context/direction-provider'
 import { FontProvider } from './context/font-provider'
+// 新增：引入我们之前创建的 NavContext
+import { NavProvider } from './context/nav-context'
 import { ThemeProvider } from './context/theme-provider'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
@@ -50,16 +53,20 @@ const queryClient = new QueryClient({
   },
   queryCache: new QueryCache({
     onError: (error) => {
+      // 这里处理的是 React Query 内部的报错
+      // 如果你同时也使用了 axios 拦截器处理 401，这里可能会触发两次
+      // 建议保留这里的逻辑，或者根据实际情况二选一
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
           toast.error('Session expired!')
           useAuthStore.getState().auth.reset()
-          const redirect = `${router.history.location.href}`
-          router.navigate({ to: '/sign-in', search: { redirect } })
+          // 这里的 router 是 TanStack Router 实例
+          // 确保 URL 存在，避免 undefined 错误
+          const currentUrl = window.location.href
+          router.navigate({ to: '/sign-in', search: { redirect: currentUrl } })
         }
         if (error.response?.status === 500) {
           toast.error('Internal Server Error!')
-          // Only navigate to error page in production to avoid disrupting HMR in development
           if (import.meta.env.PROD) {
             router.navigate({ to: '/500' })
           }
@@ -97,7 +104,10 @@ if (!rootElement.innerHTML) {
         <ThemeProvider>
           <FontProvider>
             <DirectionProvider>
-              <RouterProvider router={router} />
+              <NavProvider>
+                <RouterProvider router={router} />
+              </NavProvider>
+              <Toaster />
             </DirectionProvider>
           </FontProvider>
         </ThemeProvider>
